@@ -11,6 +11,7 @@ const taskSchema = new mongoose.Schema({
   creatorId: Number,
   assigneeId: Number,
   statusId: Number,
+  labelId: [Number],
   projectId: Number,
 });
 

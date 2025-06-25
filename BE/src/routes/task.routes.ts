@@ -97,4 +97,37 @@ router.delete('/:id', authMiddleware, async (req, res) => {
   }
 });
 
+// GET /api/tasks/by-status/:statusId
+router.get('/by-status/:statusId', authMiddleware, async (req, res) => {
+  try {
+    const { projectId } = req.query;
+    const statusId = parseInt(req.params.statusId);
+    let filter: any = { statusId };
+    if (projectId) filter.projectId = parseInt(projectId as string);
+    const tasks = await TaskModel.find(filter);
+    res.json(apiSuccess(tasks, { total: tasks.length }));
+  } catch (error) {
+    res.status(500).json(apiError('Failed to fetch tasks by statusId'));
+  }
+});
+
+// PATCH /api/tasks/:id/status
+router.patch('/:id/status', authMiddleware, async (req, res) => {
+  try {
+    const { statusId } = req.body;
+    if (!statusId) {
+      return res.status(400).json(apiError('statusId is required', 400));
+    }
+    const task = await TaskModel.findOneAndUpdate(
+      { taskId: parseInt(req.params.id) },
+      { $set: { statusId: parseInt(statusId), updatedAt: new Date() } },
+      { new: true }
+    );
+    if (!task) return res.status(404).json(apiError('Task not found', 404));
+    res.json(apiSuccess(task));
+  } catch (error) {
+    res.status(500).json(apiError('Failed to update task statusId'));
+  }
+});
+
 export default router; 

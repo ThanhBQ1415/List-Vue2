@@ -6,6 +6,7 @@ const projectSchema = new mongoose.Schema({
   description: String,
   ownerId: Number,
   createdAt: Date,
+  statusId: Number,
 });
 
 export const ProjectModel = mongoose.model('Project', projectSchema); 

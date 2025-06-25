@@ -1,9 +1,11 @@
 import express from 'express';
+import jwt from 'jsonwebtoken';
 import { UserModel } from '../models/user.mongoose';
 import { apiSuccess, apiError } from '../ultils/apiRespone';
 import { authMiddleware } from '../middlewares/auth';
 
 const router = express.Router();
+const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret';
 
 // GET /api/users (cần đăng nhập)
 router.get('/', authMiddleware, async (req, res) => {
@@ -103,7 +105,28 @@ router.post('/login', async (req, res) => {
     if (!user || user.password !== password) {
       return res.status(401).json(apiError('Invalid email or password', 401));
     }
-    res.json(apiSuccess({ userId: user.userId, fullName: user.fullName, email: user.email, avatarUrl: user.avatarUrl, createdAt: user.createdAt }));
+    
+    // Generate JWT token
+    const token = jwt.sign(
+      { 
+        userId: user.userId,
+        email: user.email,
+        fullName: user.fullName
+      }, 
+      JWT_SECRET,
+      { expiresIn: '24h' } // Token will expire in 24 hours
+    );
+
+    res.json(apiSuccess({
+      token,
+      user: {
+        userId: user.userId,
+        fullName: user.fullName,
+        email: user.email,
+        avatarUrl: user.avatarUrl,
+        createdAt: user.createdAt
+      }
+    }));
   } catch (error) {
     res.status(500).json(apiError('Failed to login'));
   }
